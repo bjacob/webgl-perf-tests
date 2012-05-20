@@ -1,0 +1,87 @@
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<script>
+  var testPageURLs = [];
+  var testsRun = [];
+  var currentPageIndex;
+  var testframe;
+  var resultsDiv;
+  var sumOfResults = 0;
+  var sumOfLogResults = 0;
+  var numberOfResults = 0;
+
+
+  function startCurrentTestPage() {
+    if (currentPageIndex < testPageURLs.length) {
+      resultsDiv.innerHTML =
+        "<h3>Running test page " +
+        (currentPageIndex+1) + " / " + testPageURLs.length +
+        " : <a href='" + testPageURLs[currentPageIndex] + "'>" + testPageURLs[currentPageIndex] + "</a></h3>";
+      testframe.src = testPageURLs[currentPageIndex];
+    } else {
+      testframe.parentNode.removeChild(testframe);
+      var t = "<b>WebGL Performance Regression Test Results</b><br/><br/>" +
+              "Keep in mind that these tests are not realistic workloads. These are not " +
+              "benchmarks aiming to compare browser or GPU performance. These are only useful " +
+              "to catch performance regressions in a given browser and system.<br/><br/>" +
+              "<b>Average result: " + Math.round(100 * sumOfResults / numberOfResults) / 100 + " ms</br>" +
+              "Geometric average: " +
+              Math.round(100 * Math.exp(sumOfLogResults / numberOfResults)) / 100 +
+              " ms</b></br></br>" +
+              "<table cellpadding=10>" +
+              "<tr style='font-weight:bold'><td>Test page</td><td>Result</td><td>Description</td>";
+      for (var i = 0; i < testsRun.length; i++) {
+        var color = (i & 1) ? "white" : "#d0ffff";
+        var result;
+        if (testsRun[i].error)
+          result = "<font color='red'><b>Error!</b></font>";
+        else if (testsRun[i].skip)
+          result = "<font color='blue'>Skipped</font>";
+        else
+          result = testsRun[i].testResult + "&nbsp;ms";
+        t += "<tr style='background-color:" + color + "'><td><a href='" + testPageURLs[i] + "'>" + testPageURLs[i] + "</a></td><td>" + result + "</td><td><i>" + testsRun[i].testDescription + "</i></td></tr>";
+      }
+      t += "</table>";
+      resultsDiv.innerHTML = t;
+    }
+  }
+
+  function messageListener(e) {
+    if (e.data.testDescription) {
+      testsRun.push(e.data);
+      if (e.data.testResult) {
+        sumOfResults += e.data.testResult;
+        sumOfLogResults += Math.log(e.data.testResult);
+        numberOfResults++;
+      }
+      currentPageIndex++;
+      startCurrentTestPage();
+    }
+  }
+
+  function start() {
+    var req = new XMLHttpRequest();
+    req.open('GET', 'tests.txt');
+    req.overrideMimeType('text\/plain; charset=x-user-defined');
+    req.onload = function() {
+      var lines = req.responseText.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i] && lines[i].indexOf('#') == -1)
+          testPageURLs.push(lines[i]);
+      }
+      currentPageIndex = 0;
+      testframe = document.getElementById("testframe");
+      resultsDiv = document.getElementById("results");
+      window.addEventListener("message", messageListener, false);
+      startCurrentTestPage();
+    }
+    req.send();
+  }
+</script>
+<body onload="start();">
+<div id="results"></div>
+<iframe id="testframe" width="100%" height="100%"></iframe>
+</body>
+</html>

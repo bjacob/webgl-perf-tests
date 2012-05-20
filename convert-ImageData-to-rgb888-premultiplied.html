@@ -1,0 +1,19 @@
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<script src="WebGLPerformanceTest.js"></script>
+<script src="TestTextureConversion.js"></script>
+<script>
+  function start() {
+    testTextureConversion(
+      randomImageData(),
+      {
+        format : RGB,
+        type : UNSIGNED_BYTE,
+        premultiplied : true
+      }
+    );
+  }
+</script>
+<body onload="start();">
