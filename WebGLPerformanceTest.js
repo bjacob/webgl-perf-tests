@@ -1,9 +1,9 @@
 function WebGLPerformanceTest(manifest) {
+  if (manifest === undefined) manifest = {};
   if (manifest.title === undefined) manifest.title = "Untitled";
   if (manifest.frameCallback === undefined) manifest.frameCallback = function() {};
   if (manifest.contextCreationFlags === undefined) manifest.contextCreationFlags = {};
   if (manifest.frameMethod === undefined) manifest.frameMethod = "requestAnimationFrame";
-  if (manifest === undefined) manifest = {};
   if (manifest.width === undefined)
     manifest.width = (manifest.frameMethod == "requestAnimationFrame") ? 1024 : 1;
   if (manifest.height === undefined)
